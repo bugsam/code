@@ -47,7 +47,7 @@ section .text
 		; this function removes 30 from the ASCII character, then
 		; convert DECIMAL to HEXADECIMAL through formula, for place
 		; values equals or greater then tens, where y is the DECIMAL value: 
-		; (y+6) + (y+3) 
+		; (y*6) + (y*3) 
 
 		push ebp
 		mov ebp, esp
@@ -74,7 +74,7 @@ section .text
 		mov cl, al
 	
 		; for the first place value isn't necessary
-		; to use the formular (y+6) * (y+4)
+		; to use the formular (y*6) + (y*4)
 		
 		cmp byte[ebp-4], 0x01
 		je ..@ones
