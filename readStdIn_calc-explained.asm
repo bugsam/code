@@ -10,7 +10,6 @@ section .data
 
 section .bss
 	value1 resq 4				; allocate 32 bytes in memory
-	value1L resb 1
 	value2 resq 4
 
 section .text
@@ -48,7 +47,7 @@ section .text
 		; this function removes 30 from the ASCII character, then
 		; convert DECIMAL to HEXADECIMAL through formula, for place
 		; values equals or greater then tens, where y is the DECIMAL value: 
-		; (y*6) + (y*4) 
+		; (y+6) + (y+3) 
 
 		push ebp
 		mov ebp, esp
@@ -75,7 +74,7 @@ section .text
 		mov cl, al
 	
 		; for the first place value isn't necessary
-		; to use the formular (y*6) + (y*4)
+		; to use the formular (y+6) * (y+4)
 		
 		cmp byte[ebp-4], 0x01
 		je ..@ones
@@ -137,7 +136,7 @@ section .text
 		push welcomeL
 		push welcome
 		call WriteStdOut
-	
+			
 		push ask_oneL 
 		push ask_one
 		call WriteStdOut
@@ -146,31 +145,37 @@ section .text
 		push value1 				; buffer
 		call ReadStdIn				; return size of written data to buffer
 		dec eax	
-		mov dword[value1L], eax			; save value1 length
 		mov byte[ds:value1+eax], 0x00		; clear LF character
 		
-		call AsciiNumToHex		
-		
-		; TODO: calc both numbers
+		call AsciiNumToHex			; transfor to hexadecimal
+		mov dword[value1], edi			; save hexadecimal value
 		
 		push ask_twoL
 		push ask_two
 		call WriteStdOut
-
-		push 0x04
-		push value2
-		call ReadStdIn
-		mov [value2], ch
-
+		
+		push 0x100				; buffer size limit
+		push value2				; buffer
+		call ReadStdIn				; return size of written data to buffer
+		dec eax
+		mov byte [ds:value2+eax], 0x00		; clear LF character
+	
+		call AsciiNumToHex
+		mov dword[value2], edi			; save hexadecimal value
+		
+		; sum operation
 		mov eax, dword[value1]
 		add eax, dword[value2]
 		
-		push eax			; argument sum, as EAX stores result of the addition operation 
+		; TODO reverse HEX to ASCII
+		
+		push 0x04				; buffer size
+		push eax				; buffer (sum result)
 		call WriteStdOut
 		
 		pushad
 		pushfd
-
+		
 		mov ebx, 0x00
 		mov eax, 0x01
 		int 0x80
