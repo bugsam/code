@@ -1,6 +1,8 @@
 ; Author: @bugsam [GitHub]
 ; 04/02/2020
 
+global _start
+
 section .data				; specify additional information to ELF data section
 	buffer db "bugsam",0x0a
 	bufferL equ $-buffer
@@ -8,8 +10,6 @@ section .data				; specify additional information to ELF data section
 
 section .bss
 section .text
-	global _start
-
 	counter:
 		mov ecx, 0x3			; set counter
 		jmp print
