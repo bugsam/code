@@ -1,6 +1,8 @@
 ; Author: @bugsam
 ; 04/05/2020
 
+global _start
+
 ;%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 section .data
 	fd_src db "/etc/shadow",0			; file descriptor (source)
@@ -14,7 +16,6 @@ section .bss
 
 ;%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 section .text
-global _start
 	OpenFile:
 		push ebp				; save old base pointer
 		mov ebp, esp				; save old intruction pointer
