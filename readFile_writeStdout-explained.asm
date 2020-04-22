@@ -1,6 +1,8 @@
 ; Author: @bugsam
 ; 04/03/2020
 
+global _start
+
 section .data
 	fd db "/etc/shadow",0	; set file descriptor, example '/etc/shadow'
 	handle db "",0		; buffer to save handle
@@ -9,8 +11,6 @@ section .bss			; specify additional information to ELF bss section
 	buffer resq 0x100	; create a buffer in memory of 2048bytes / note that each quad equals 8 bytes
 
 section .text
-	global _start
-
 	OpenFile:
 		push ebp
 		mov ebp, esp
