@@ -1,14 +1,14 @@
 ; Author: @bugsam
 ; 04/02/2020
 
+global _start
+
 section .data				; specify additional information to ELF data section
 	buffer db "bugsam",0x0a
 	bufferL equ $-buffer
 
 section .bss
 section .text
-global _start
-
 _start:
 	mov ecx, 0x3			; set counter
 print:
