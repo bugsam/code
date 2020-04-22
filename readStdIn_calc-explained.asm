@@ -1,3 +1,5 @@
+global _start
+
 section .data
 	welcome db "This program will calculate the sum of two values: ",0x0a
 	welcomeL equ $-welcome
@@ -13,8 +15,6 @@ section .bss
 	value2 resq 4
 
 section .text
-	global _start
-
 	WriteStdOut:
 		push ebp
 		mov ebp, esp
