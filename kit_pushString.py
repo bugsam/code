@@ -4,7 +4,7 @@
 __author__ = "@bugsam"
 
 code = 'TYPE YOUR STRING HERE'
-print("String lenght: " + hex(len(code)))
+print("String length: " + hex(len(code)))
 code = code[::-1].encode('hex')
 
 #code = 'TYPE YOUR SHELLCODE HERE'
@@ -23,4 +23,4 @@ while i != (len(code)/8):
     y += 8
     i += 1
     
-print("String lenght w/ padding: " + hex(len(code)/2))
+print("String length w/ padding: " + hex(len(code)/2))
