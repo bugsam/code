@@ -5,7 +5,7 @@ __author__ = "@bugsam"
 
 code = 'TYPE SOME STRING HERE'
 code = code[::-1].encode('hex')
-code = 'TYPE YOUR OPCODES HERE'
+#code = 'TYPE YOUR OPCODES HERE'
 print("String lenght: " + hex(len(code)/2))
 mod = len(code)%8
 if mod != 0:
