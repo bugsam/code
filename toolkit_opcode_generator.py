@@ -1,12 +1,13 @@
 # Author: @bugsam
 # 05/23/2020
-
+# sys.argv[1] = string:: path to elf
+# sys.argv[2] = string:: one byte key (e.g. '0xAA')
 import sys
 from elftools.elf.elffile import ELFFile
 from capstone import *
 
 def shellcode(bytes):
-	ops = bytes.hex()
+	ops = bytes
 	i = 0
 	x = 0
 	y = 2
@@ -16,13 +17,41 @@ def shellcode(bytes):
 		x = y
 		y += 2
 		i += 1
-	return code	
+	return code
+
+def cipher(bytes,key):
+	ops = bytes
+	i = 0
+	x = 0
+	y = 2
+	code  = ''
+	while i != (len(ops)/2):
+		code += '%02x'% (int(ops[x:y],16)^int(key,16))
+		x = y
+		y += 2
+		i += 1
+	return code
+
+def no_nullbyte(encoded):
+	if '00' in str(encoded):
+		return str(encoded).find('00')
+	else:
+		return True
 
 path = sys.argv[1]
-#f = open('./exec-shellcode', 'rb')	#read binary
 f = open(path, 'rb')	#read binary
 elf = ELFFile(f)	# map file as ELF
 code = elf.get_section_by_name('.text')	# extract .text section
 ops = code.data()	# get data from text
+xcode = (shellcode(ops.hex()))
 
-print(shellcode(ops))
+key = sys.argv[2]
+encoded = (cipher(ops.hex(),key))
+old = (cipher(encoded,key))
+print("Key works:",ops.hex() == old and no_nullbyte(encoded))
+print()
+print("Original:",ops.hex())
+print("Payload:",xcode)
+print()
+print("Encoded:",encoded)
+print("Payload:",shellcode(encoded))
