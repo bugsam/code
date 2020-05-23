@@ -1,5 +1,5 @@
 # Author: @bugsam
-# 05/23/2020
+# 
 # sys.argv[1] = string:: path to elf
 # sys.argv[2] = string:: one byte key (e.g. '0xAA')
 import sys
@@ -34,7 +34,7 @@ def cipher(bytes,key):
 
 def no_nullbyte(encoded):
 	if '00' in str(encoded):
-		return str(encoded).find('00')
+		return str(encoded).find('00')	#return position of null byte
 	else:
 		return True
 
