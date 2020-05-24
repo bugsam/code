@@ -34,9 +34,9 @@ def cipher(bytes,key):
 		i += 1
 	return code
 
-def no_nullbyte(encoded):
-	if '00' in str(encoded):
-		return str(encoded).find('00')	#return position of null byte
+def no_nullbyte(code):
+	if '00' in str(code):
+		return False,str(code).find('00')	#return position of null byte
 	else:
 		return True
 
@@ -55,10 +55,12 @@ old = (cipher(encoded,key))
 print("Key works:",ops.hex() == old and no_nullbyte(encoded))
 print("Shellcode length:",lcode,hex(lcode))
 print()
+print("NO Null bytes:",no_nullbyte(xcode))
 print("Original:",ops.hex())
 print("Payload:",xcode)
 print("Payload:",ncode)
 print()
+print("NO Null bytes:",no_nullbyte(encoded))
 print("Encoded:",encoded)
 print("Payload:",xencoded)
 print("Payload:",nencoded)
