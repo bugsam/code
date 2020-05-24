@@ -46,12 +46,14 @@ elf = ELFFile(f)	# map file as ELF
 code = elf.get_section_by_name('.text')	# extract .text section
 ops = code.data()	# get data from text
 xcode, ncode = (shellcode(ops.hex())) #returns payload with \ and ,
+lcode = int(len(str(xcode))/4)
 
 key = sys.argv[2]
 encoded = (cipher(ops.hex(),key))
 xencoded, nencoded = shellcode(encoded)
 old = (cipher(encoded,key))
 print("Key works:",ops.hex() == old and no_nullbyte(encoded))
+print("Shellcode length:",lcode,hex(lcode))
 print()
 print("Original:",ops.hex())
 print("Payload:",xcode)
