@@ -1,4 +1,5 @@
 ; Author: @bugsam
+; Date: 06/26/2020
 ; Description: creates a peer application to communicates with a peer socket.
 ; Reference:
 ;               [1] socketcall(2)
