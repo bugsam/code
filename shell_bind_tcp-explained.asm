@@ -83,7 +83,7 @@ _start:
 	push ecx		; s_addr <- 0x00 
 	push ecx		; sin_port,sin_family <- 0x00
 	mov ecx, esp		; ECX -> *struct sockaddr_in
-;nota para push ecx in *addr
+
 	push 0x0		; args[2] addrlen 
 	push 0x0		; args[1] *addr -> *struct sockaddr_in
 	push edx		; args[0] sockfd	
