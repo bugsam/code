@@ -70,7 +70,6 @@ _start:
 	; sockets waiting to be accepted.
 	
 	pop edx
-	;xor ecx, ecx
 	push edi		; args[1] backlog
 	push edx		; args[0] sockfd
 	
@@ -82,7 +81,6 @@ _start:
 	; 0x03 - SYS_ACCEPT can too be called with SYS_SOCKETCALL. The SYS_ACCEPT
 	; constructor is like the SYS_BIND.
 	
-	;xor ecx, ecx
 	push edi		; s_addr <- 0x00 
 	push edi		; sin_port,sin_family <- 0x00
 	mov ecx, esp		; ECX -> *struct sockaddr_in
