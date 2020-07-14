@@ -4,7 +4,7 @@
 FILE=$0
 
 IP="\x7f\x01\x01\x01" #127.1.1.1         
-PORT="\x05\x39" #1337 network byte order
+PORT="\x05\x39" #1337
 
 echo "[+] Creating C source"
 # others people code
