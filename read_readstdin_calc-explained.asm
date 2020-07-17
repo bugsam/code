@@ -173,8 +173,8 @@ section .text
 		push eax				; buffer (sum result)
 		call WriteStdOut
 		
-		pushad
-		pushfd
+		popad
+		popfd
 		
 		mov ebx, 0x00
 		mov eax, 0x01
