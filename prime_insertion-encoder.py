@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # Author: @bugsam
-# Date? 07/16/2020
 #
-# 
+#
 # sys.argv[1] = string:: path to elf
 import sys
 import secrets
@@ -41,15 +40,15 @@ def isPrime(n) :
         return False
     else:
         return True
-        
+
 def insertion(bytes):
-    i = 0
+    i = 1
     x = 0
     y = 2
     p = 0
     code  = ''
-    
-    while i != (len(bytes)):
+
+    while i != (len(bytes)+1):
         code += bytes.hex()[x:y]
         if(isPrime(i)):
             #code += random()
@@ -71,7 +70,6 @@ prime_xcode, prime_ncode = (shellcode(payload))# returns payload with \ and ,
 
 original_lcode = int(len(str(original_xcode))/4) # returns length shellcode
 prime_lcode = int(len(str(prime_xcode))/4) # returns length shellcode
-
 print("Original shellcode length:",original_lcode,hex(original_lcode))
 print("Original opcodes:",original_xcode,"\n",original_ncode)
 print()
