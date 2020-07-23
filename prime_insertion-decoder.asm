@@ -7,16 +7,16 @@ section .text
 
 _start:
 	jmp short caller
-
+	
 IsPrime:
         push ebp
         mov ebp, esp
-
+	
         mov esi, 0x01           ; (ESI) -> range from 1 to NUMBER
 	mov cl, [esp+8]		; (ECX) -> loop counter
 	xor eax, eax		; clear register
 	xor edi, edi		; clear register
-
+	
         ..@loopPrime:
                 xor ebx, ebx	; clear register
                 xor edx, edx	; clear register
@@ -26,22 +26,18 @@ IsPrime:
                 setz bl		; set if remainder is ZERO
                 add edi, ebx 	; [EDI] -> number of operations with ZERO remainder
                 inc si          ; next divisor
-
+		
                 loop ..@loopPrime
-
+		
                 cmp edi, 0x02	; greater than 0x02 is compositive number
 		cmovg ebx, edx	; returns as a compositive number
 		cmovz ebx, [esp+8] ; returns as a prime number
-
-				; ATTENTION: if not used EBX to further use, its
-				; not necessary to cmovz
-
+		
                 leave
                 ret
 
 decoder:
         pop esi			; (ESI) -> memory address for first byte of shellcode
-	inc esi			; avoids BYTE 0x01
 	push esi		; (ESI) -> saves register
 	
 	xor ebx, ebx
@@ -51,20 +47,27 @@ decoder:
 	..@loopDecoder:
 		push ecx		; [ESP+4] -> saves counter
 		push ebx		; [ESP] -> interact with a BYTE
-
+		
 		call IsPrime		; verify if BYTE is prime
 					; returns 0x00 -> compositive number
 					; returns BYTE <> 0 -> the prime number
 		cmp ebx, edx		; (EBX) -> verify if is a compositive number
 		jz ..@return
-		mov edx, [esp+8]
-		lea esi, [edx]		; (ESI) -> source byte
-		add esi, 0x2
+		
+		mov ecx, [esp+4]	; (ECX) -> counter
+		sub ecx, ebx		;
+			
+		mov edx, [esp+8]	; (EDX) -> memory address of shellcode
+		
 		lea edi, [edx]		; (EDI) -> destination byte
-		add edi, 0x01		
-		lodsb			; ESI
-		stosb			; EDI
-
+		add edi, ebx		; (EDI) -> adjust of loop interaction
+		mov esi, edi		; (EDI) -> source byte
+		add esi, 0x01		; (EDI) -> gets next byte
+		
+		cld			; increment index of ESI|EDI
+		rep movsb		; replace byte with next byte
+		mov eax, 0x01	; create count mechanism
+		
 		..@return:
 		pop ebx			; (EBX) -> restore register
 		inc ebx			; (EBX) -> interact with next BYTE
