@@ -32,7 +32,7 @@ _start:
 
 	cld			; trash
 
-	push edx		; end of array argv[c] NULL pointer
+	push edx		; end of array argv[c] NULL pointer and *envp[]
 	push edi		; address of argv[2] (second argument)
 	push ecx		; address of argv[1] (first argument)
 	push ebx		; address of argv[0] (filename of executable)
