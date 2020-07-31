@@ -38,4 +38,3 @@ _start:
 	push ebx		; address of argv[0] (filename of executable)
 	mov ecx, esp		; (ECX) *argv[]
 	int 0x80		; call syscall SYS_execve, on success does not return 
-
