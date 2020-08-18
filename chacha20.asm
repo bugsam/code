@@ -182,7 +182,7 @@ addmatrix:
 	push ebp
 	mov ebp, esp
 	xor ebx, ebx
-	mov ecx, 0xf
+	mov ecx, 0x10
 		
 addmatrix_l:
 	mov eax, [matrixv+ebx]
