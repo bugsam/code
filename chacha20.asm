@@ -1,3 +1,5 @@
+; Author: @bugsam
+; Date: 08/18/2020
 global _start
 
 ; check RFC7539
