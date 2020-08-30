@@ -1,12 +1,13 @@
 ; Author: @bugsam
 ; Date: 08/29/2020
+ot@kali:~/Documents/SHELLCODE# cat chacha20.asm
 global _start
 
 ; check RFC7539
 section .text
 _start:
-	add ax, 0x01ab
-	jmp eax
+	add ax, 0x01aa
+	jmp eax			; jump to payload
 	;;jmp payload
 
 ; the chacha quarter round function
@@ -236,11 +237,14 @@ block:
 	call xorstream		; matrixv xor shellcode_encoded
 	pop ecx
 	add ecx, 0x40
-	cmp ecx, 0x80
+	xor ebx, ebx
+	mov bl, 0x80
+	cmp ecx, ebx 		; must be extended register
 	jle block
 	
-	sub eax, 0x95		; offset shellcode
-	jmp eax
+	mov bl, 0x95		; offset shellcode
+	sub eax, ebx		; offset shellcode
+	jmp eax			; jump to shellcode
 	;jmp shellcode
 
 payload:
