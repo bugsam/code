@@ -1,13 +1,13 @@
 ; Author: @bugsam
-; Date: 08/29/2020
+; Date: 09/11/2020
 global _start
 
 ; check RFC7539
 section .text
 _start:
 	add ax, 0x01aa
-	;;jmp eax			; jump to payload
-	jmp payload
+	jmp eax			; jump to payload
+	;;jmp payload
 
 ; the chacha quarter round function
 ; input: four 32-bit integer a, b, c and d
@@ -243,8 +243,8 @@ block:
 	
 	mov bl, 0x95		; offset shellcode
 	sub eax, ebx		; offset shellcode
-	;;jmp eax			; jump to shellcode
-	jmp shellcode
+	jmp eax			; jump to shellcode
+	;;jmp shellcode
 
 payload:
 	xor ecx, ecx
