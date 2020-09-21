@@ -5,9 +5,9 @@ global _start
 ; check RFC7539
 section .text
 _start:
-	add ax, 0x01a5
-	;jmp eax			; jump to payload
-	jmp payload
+	add ax, 0x01a9
+	jmp eax			; jump to payload
+	;;jmp payload
 
 ; the chacha quarter round function
 ; input: four 32-bit integer a, b, c and d
@@ -159,7 +159,6 @@ addmatrix:
 		
 addmatrix_l:
 	mov eax, [edi+ebx]		; EDI: matrixv
-	;add eax, [esi+ebx]		; ESI: matrixm
 	adc eax, [esi+ebx]		; ESI: matrixm
 	bswap eax			; little endian conversion
 	mov [edi+ebx], eax		; matrixv+offset
@@ -247,7 +246,6 @@ block:
 	mov bl, 0x95		; offset shellcode
 	sub eax, ebx		; offset shellcode
 	jmp eax			; jump to shellcode
-	;;jmp shellcode
 
 payload:
 	xor ecx, ecx
