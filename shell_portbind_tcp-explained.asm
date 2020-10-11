@@ -1,4 +1,3 @@
-t@kali:~/Documents/SHELLCODE# cat portbind_tcp.asm 
 ; Author: @bugsam
 ; Date: 10/10/2020
 ; Description: creates a peer application to communicates with a peer socket and returns a command shell.
