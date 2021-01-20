@@ -78,23 +78,24 @@ $keyPKCS8 = [ordered]@{
 			"_header" = $null;
 			"_rsaalgoident" = ByteToHex(2,1,0,48,13+[Security.Cryptography.CryptoConfig]::EncodeOID("1.2.840.113549.1.1.1")+5,0);
 			"_rsaheader" = ByteToHex(2,1,0);
-			"_rsamodulus" = asnEncoder -tag $tag -rsaparam $_rsamodulus;
-			"_rsapublicexponent" = asnEncoder -tag $tag -rsaparam $_rsapublicexponent;
-			"_rsaprivateexponent" = asnEncoder -tag $tag -rsaparam $_rsaprivateexponent;
-			"_rsaprime1" = asnEncoder -tag $tag -rsaparam $_rsaprime1;
-			"_rsaprim2" = asnEncoder -tag $tag -rsaparam $_rsaprime2;
-			"_rsaexponent1" = asnEncoder -tag $tag -rsaparam $_rsaexponent1;
-			"_rsaexponent2" = asnEncoder -tag $tag -rsaparam $_rsaexponent2;
-			"_rsacoefficient" = asnEncoder -tag $tag -rsaparam $_rsacoefficient;
+			"_rsamodulus" = (asnEncoder -tag $tag -rsaparam $_rsamodulus) -split ' ';;
+			"_rsapublicexponent" = (asnEncoder -tag $tag -rsaparam $_rsapublicexponent) -split ' ';;
+			"_rsaprivateexponent" = (asnEncoder -tag $tag -rsaparam $_rsaprivateexponent) -split ' ';;
+			"_rsaprime1" = (asnEncoder -tag $tag -rsaparam $_rsaprime1) -split ' ';;
+			"_rsaprim2" = (asnEncoder -tag $tag -rsaparam $_rsaprime2) -split ' ';;
+			"_rsaexponent1" = (asnEncoder -tag $tag -rsaparam $_rsaexponent1) -split ' ';;
+			"_rsaexponent2" = (asnEncoder -tag $tag -rsaparam $_rsaexponent2) -split ' ';;
+			"_rsacoefficient" = (asnEncoder -tag $tag -rsaparam $_rsacoefficient) -split ' ';
 }
 
-#TODO Header with Length
+#TODO HEADER
 $length = 0;
 $keyPKCS8.values.length | Foreach { $length += $_ }
 $tag = 48
-$keyPKCS8["_rsaheader"] = ByteToHex($length - $keyPKCS8['_rsaalgoident'].length)
-#$keyPKCS8["_header"] = "30"
 
+$keyPKCS8["_rsaheader"] = ByteToHex($length - $keyPKCS8['_rsaalgoident'].length)
+
+#$keyPKCS8["_header"] = "30"
 
 $keyPKCS8_B64 = [Convert]::ToBase64String($keyPKCS8.values,"InsertLineBreaks");
 #createFile
