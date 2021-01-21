@@ -15,19 +15,20 @@ function ByteToHex([array]$hexa){
 	$hexa
 }
 
-function asnEncoder($tag, $rsaparam){
+#ASN.1 DER enconding is made of a Tag, Length and a Value
+function asnEncoder($tag, $value){
 	$line = [ordered]@{
 		"tag" = ByteToHex -hexa $tag;
 		"length" = $null;
-		"rsaparam" = ByteToHex -hexa $rsaparam;
+		"value" = ByteToHex -hexa $value;
 	}
 	
 	# ASN.1 INTEGER can be positive, negative or zero;
 	# verify whether the MSB of the first byte of value is setted
 	# if yes, add a new zeroed byte to do ASN.1 interprets the
 	# value as positive
-	if ($line['rsaparam'][0] -ge 0x80){
-		$line['rsaparam'] = ,(ByteToHex(0)) + $line['rsaparam']
+	if ($line['value'][0] -ge 0x80){
+		$line['value'] = ,(ByteToHex(0)) + $line['value']
 	}
 	
 	# DER encoding accepts two length formats for values; 
@@ -37,8 +38,8 @@ function asnEncoder($tag, $rsaparam){
 	# is used to represent the quantity of additional bytes used to represent
 	# the length number. The next fields of length represents the length value.
 	
-	$line['length'] = (ByteToHex -hexa $line['rsaparam'].Length) -split '(.{2})' | Where-Object {$_}
-	if ($line['rsaparam'].Length -ge 0x80){
+	$line['length'] = (ByteToHex -hexa $line['value'].Length) -split '(.{2})' | Where-Object {$_}
+	if ($line['value'].Length -ge 0x80){
 		#first byte of length field, MSB set + number of additional bytes
 		#(1000 0000) + (number of additional bytes of Length)
 		$payload = ByteToHex($line['length'].Length + 0x80)
@@ -78,25 +79,41 @@ $keyPKCS8 = [ordered]@{
 			"_header" = $null;
 			"_rsaalgoident" = ByteToHex(2,1,0,48,13+[Security.Cryptography.CryptoConfig]::EncodeOID("1.2.840.113549.1.1.1")+5,0);
 			"_rsaheader" = ByteToHex(2,1,0);
-			"_rsamodulus" = (asnEncoder -tag $tag -rsaparam $_rsamodulus) -split ' ';;
-			"_rsapublicexponent" = (asnEncoder -tag $tag -rsaparam $_rsapublicexponent) -split ' ';;
-			"_rsaprivateexponent" = (asnEncoder -tag $tag -rsaparam $_rsaprivateexponent) -split ' ';;
-			"_rsaprime1" = (asnEncoder -tag $tag -rsaparam $_rsaprime1) -split ' ';;
-			"_rsaprim2" = (asnEncoder -tag $tag -rsaparam $_rsaprime2) -split ' ';;
-			"_rsaexponent1" = (asnEncoder -tag $tag -rsaparam $_rsaexponent1) -split ' ';;
-			"_rsaexponent2" = (asnEncoder -tag $tag -rsaparam $_rsaexponent2) -split ' ';;
-			"_rsacoefficient" = (asnEncoder -tag $tag -rsaparam $_rsacoefficient) -split ' ';
+			"_rsamodulus" = (asnEncoder -tag $tag -value $_rsamodulus) -split ' ';
+			"_rsapublicexponent" = (asnEncoder -tag $tag -value $_rsapublicexponent) -split ' ';
+			"_rsaprivateexponent" = (asnEncoder -tag $tag -value $_rsaprivateexponent) -split ' ';
+			"_rsaprime1" = (asnEncoder -tag $tag -value $_rsaprime1) -split ' ';
+			"_rsaprim2" = (asnEncoder -tag $tag -value $_rsaprime2) -split ' ';
+			"_rsaexponent1" = (asnEncoder -tag $tag -value $_rsaexponent1) -split ' ';
+			"_rsaexponent2" = (asnEncoder -tag $tag -value $_rsaexponent2) -split ' ';
+			"_rsacoefficient" = (asnEncoder -tag $tag -value $_rsacoefficient) -split ' ';
 }
 
-#TODO HEADER
-$length = 0;
-$keyPKCS8.values.length | Foreach { $length += $_ }
-$tag = 48
+#calculate _rsaheader (ASN.1 #SEQUENCE)
+$line = [ordered]@{
+	"tag" = ByteToHex -hexa ([byte]0x30)
+	"length" = (ByteToHex -hexa (($keyPKCS8[2..10] | % {$_}).Length)) -split '(.{2})' | Where-Object {$_};
+}
+$payload = ByteToHex($line['length'].Length + 0x80);
+$keyPKCS8['_rsaheader'] = ,$line['tag']+ $payload + $line['length'] + $keyPKCS8['_rsaheader'];
 
-$keyPKCS8["_rsaheader"] = ByteToHex($length - $keyPKCS8['_rsaalgoident'].length)
+#calculate _rsaheader (ASN.1 #OCTET STRING)
+$line = [ordered]@{
+	"tag" = ByteToHex -hexa ([byte]0x04)
+	"length" = (ByteToHex -hexa (($keyPKCS8[2..10] | % {$_}).Length)) -split '(.{2})' | Where-Object {$_};
+}
+$payload = ByteToHex($line['length'].Length + 0x80);
+$keyPKCS8['_rsaheader'] = ,$line['tag']+ $payload + $line['length'] + $keyPKCS8['_rsaheader'];
 
-#$keyPKCS8["_header"] = "30"
+#calculate _header (ASN.1 #SEQUENCE)
+$line = [ordered]@{
+	"tag" = ByteToHex -hexa ([byte]0x30)
+	"length" = (ByteToHex -hexa (($keyPKCS8[1..10] | % {$_}).Length)) -split '(.{2})' | Where-Object {$_};
+}
+$payload = ByteToHex($line['length'].Length + 0x80);
+$keyPKCS8['_header'] = ,$line['tag']+ $payload + $line['length']
 
+#TODO convert to Base64
 $keyPKCS8_B64 = [Convert]::ToBase64String($keyPKCS8.values,"InsertLineBreaks");
 #createFile
 $out = New-Object string[] -ArgumentList 6;
