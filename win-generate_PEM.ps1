@@ -52,8 +52,14 @@ function asnEncoder([byte]$tag, [array]$value){
 	}
 }
 
-
-
+function header([byte]$tag, [array]$value){
+	$line = [ordered]@{
+		"tag" = $tag;
+		"length" = $value.length;
+	}
+	$payload = ((ByteToHex -hexa $line['length']) -split '(.{2})' | Where-Object {$_}).Length + 0x80;
+	$line['tag'], $payload, $line['length'];
+}
 
 #create certificate
 $cert = New-SelfSignedCertificate `
@@ -77,27 +83,6 @@ $_rsaprime2 = $key.ExportParameters("true").Q;
 $_rsaexponent1 = $key.ExportParameters("true").DP;
 $_rsaexponent2 = $key.ExportParameters("true").DQ;
 $_rsacoefficient = $key.ExportParameters("true").InverseQ;
-
-
-function header([byte]$tag, [array]$value){
-	$line = [ordered]@{
-		"tag" = $tag;
-		"length" = (ByteToHex -hexa $line['value'].Length) -split '(.{2})' | Where-Object {$_}
-	}
-	$payload = $line['length'].Length + 0x80;
-	$line['length'] = ,$payload + $value.length;
-	$line.values;
-}
-
-function header([byte]$tag, [array]$value){
-	$line = [ordered]@{
-		"tag" = $tag;
-		"length" = $value.length;
-	}
-	$payload = ((ByteToHex -hexa $line['length']) -split '(.{2})' | Where-Object {$_}).Length + 0x80;
-	$line['tag'], $payload, $line['length'];
-}
-
 
 $tag = [byte]0x2;
 $keyPKCS8 = [ordered]@{
