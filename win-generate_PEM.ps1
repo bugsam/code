@@ -101,7 +101,8 @@ $keyPKCS8 = [ordered]@{
 
 #calculate _rsaheader (ASN.1 #SEQUENCE)
 $tag = [byte]0x30
-$keyPKCS8['_rsaheader'] = (header -tag $tag -value ($keyPKCS8[3..10] | % {$_})) -split ' ';
+$line = (header -tag $tag -value ($keyPKCS8[2..10] | % {$_})) -split ' ';
+$keyPKCS8['_rsaheader'] = (,$line + $keyPKCS8['_rsaheader']) -split ' ';
 
 #calculate _rsaheader (ASN.1 #OCTET STRING)
 $tag = [byte]0x04;
@@ -112,12 +113,10 @@ $keyPKCS8['_rsaheader'] = (,$line + $keyPKCS8['_rsaheader']) -split ' ';
 $tag = [byte]0x30
 $keyPKCS8['_header'] = (header -tag $tag -value ($keyPKCS8[1..10] | % {$_})) -split ' ';
 
-#$bytearray = ((ByteToHex -hexa ($keyPKCS8[0..10] | % {$_})) -split '(.{2})' | Where-Object {$_}) #| % {([byte[]] ('0x'+$_)).ForEach('ToString', 'd')}
-$bytearray = ((ByteToHex -hexa ($keyPKCS8[0..10] | % {$_})) -split '(.{2})' | Where-Object {$_}) | % {[byte[]]('0x'+$_)}
-
-#TODO convert to Base64
-$keyPKCS8_B64 = [Convert]::ToBase64String($bytearray,"InsertLineBreaks");
 #createFile
+$bytearray = ((ByteToHex -hexa ($keyPKCS8[0..10] | % {$_})) -split '(.{2})' | Where-Object {$_}) | % {[byte[]]('0x'+$_)}
+$keyPKCS8_B64 = [Convert]::ToBase64String($bytearray,"InsertLineBreaks");
+
 $out = New-Object string[] -ArgumentList 6;
 $out[0] = "-----BEGIN PRIVATE KEY-----";
 $out[1] = $keyPKCS8_B64;
