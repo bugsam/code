@@ -55,7 +55,7 @@ function asnEncoder([byte]$tag, [array]$value){
 function header([byte]$tag, [array]$value){
 	$line = [ordered]@{
 		"tag" = $tag;
-		"length" = $value.length;
+		"length" = ((ByteTohex -hexa $value) -split '(.{2})' | ? {$_}).Length
 	}
 	$payload = ([array](ByteToHex -hexa $length) -split '(.{2})' | Where-Object {$_}).Length + 0x80;
 	$line['tag'], $payload, $line['length'];
@@ -113,7 +113,6 @@ $tag = [byte]0x30
 $keyPKCS8['_header'] = (header -tag $tag -value ($keyPKCS8[1..10] | % {$_})) -split ' ';
 
 #$bytearray = ((ByteToHex -hexa ($keyPKCS8[0..10] | % {$_})) -split '(.{2})' | Where-Object {$_}) #| % {([byte[]] ('0x'+$_)).ForEach('ToString', 'd')}
-
 $bytearray = ((ByteToHex -hexa ($keyPKCS8[0..10] | % {$_})) -split '(.{2})' | Where-Object {$_}) | % {[byte[]]('0x'+$_)}
 
 #TODO convert to Base64
