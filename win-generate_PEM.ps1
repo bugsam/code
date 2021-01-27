@@ -113,14 +113,14 @@ $keyPKCS8['_rsaheader'] = (,$line + $keyPKCS8['_rsaheader']) -split ' ';
 $tag = [byte]0x30
 $keyPKCS8['_header'] = (header -tag $tag -value ($keyPKCS8[1..10] | % {$_})) -split ' ';
 
-#createFile
 $bytearray = ((ByteToHex -hexa ($keyPKCS8[0..10] | % {$_})) -split '(.{2})' | Where-Object {$_}) | % {[byte[]]('0x'+$_)}
-$keyPKCS8_B64 = [Convert]::ToBase64String($bytearray,"InsertLineBreaks");
 
+$keyPKCS8_B64 = [Convert]::ToBase64String($bytearray,"InsertLineBreaks");
+#createFile
 $out = New-Object string[] -ArgumentList 6;
-$out[0] = "-----BEGIN PRIVATE KEY-----";
+$out[0] = "-----BEGIN RSA PRIVATE KEY-----";
 $out[1] = $keyPKCS8_B64;
-$out[2] = "-----END PRIVATE KEY-----"
+$out[2] = "-----END RSA PRIVATE KEY-----"
 
 $out[3] = "-----BEGIN CERTIFICATE-----"
 $out[4] = $certPKCS8_B64;
