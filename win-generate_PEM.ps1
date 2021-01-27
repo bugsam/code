@@ -4,6 +4,7 @@
 #Reference:
 #	[1] https://www.cs.auckland.ac.nz/~pgut001
 #	[2] http://luca.ntop.org/Teaching/Appunti/asn1.html
+#	[3] https://www.itu.int/rec/T-REC-X.690-201508-I/en
 
 function ByteToHex([array]$hexa){
 	$hexa = ( $hexa | ForEach-Object {[System.Convert]::ToString($_,16)})
@@ -15,7 +16,7 @@ function ByteToHex([array]$hexa){
 	$hexa
 }
 
-#ASN.1 DER enconding is made of a Tag, Length and a Value
+#ASN.1 BER enconding is made of a Tag, Length and a Value
 function asnEncoder([byte]$tag, [array]$value){
 	$line = [ordered]@{
 		"tag" = $tag
@@ -31,7 +32,7 @@ function asnEncoder([byte]$tag, [array]$value){
 		$line['value'] = ,0 + $line['value']
 	}
 	
-	# DER encoding accepts two length formats for values; 
+	# BER encoding accepts two length formats for values; 
 	# for values that contains less than 0x80 bytes, one single byte is
 	# used to represent the length. For values greater than 0xFF the MSB
 	# of the first byte of length field is set, and the rest of this byte
