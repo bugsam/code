@@ -7,14 +7,15 @@
 #include <stdlib.h>
 
 struct num{
-    char digit;
+    int digit;
     struct num *next;
 };
 
 struct num *join (struct num *, struct num *);
 struct num *createNumber(char);
 struct num *generateNumber(void);
-int sum(struct num *, struc num *);
+void potentialize(struct num *);
+int sum(struct num *, struct num *);
 
 int main(void){
     //! showMemory(msb)
@@ -25,8 +26,24 @@ int main(void){
     b = generateNumber();
     result = sum(a,b);
     
-    
     return 0;
+}
+
+void potentialize(struct num *n){
+    struct num *ptr = n;
+    int count = 0;
+    while(n != NULL){
+        n = n->next;
+        count++;
+    }
+    n = ptr;
+    while(n != NULL){
+        for(int i=1; i<count; i++){
+            n->digit *= 10;
+        }
+        n = n->next;
+        count--;
+    }
 }
 
 struct num *join(struct num *nbit, struct num *bit){
@@ -61,12 +78,6 @@ struct num *generateNumber(void){
         }
         scanf("%c",&a);
     }
+    potentialize(start);
     return(start);
-}
-
-int sum(struct num *a, struc num *b){
-    int result = 0;
-    
-    
-    
 }
