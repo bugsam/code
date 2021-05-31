@@ -2,10 +2,6 @@
 @bugsam
 05/29/2021
 */
-/*
-@bugsam
-05/29/2021
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
