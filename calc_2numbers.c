@@ -2,6 +2,10 @@
 @bugsam
 05/29/2021
 */
+/*
+@bugsam
+05/29/2021
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +22,6 @@ void potentialize(struct num *);
 int sum(struct num *, struct num *);
 
 int main(void){
-    //! showMemory(msb)
     struct num *a, *b;
     int result = 0;
     
@@ -29,13 +32,19 @@ int main(void){
     return 0;
 }
 
-void potentialize(struct num *n){
-    struct num *ptr = n;
+int countBytes(struct num *n){
     int count = 0;
     while(n != NULL){
         n = n->next;
         count++;
     }
+    return(count);
+}
+
+void potentialize(struct num *n){
+    struct num *ptr = n;
+    int count = 0;
+    count = countBytes(n);
     n = ptr;
     while(n != NULL){
         for(int i=1; i<count; i++){
@@ -62,6 +71,8 @@ struct num *createNumber(char c){
     return(bit);
 }
 
+
+
 struct num *generateNumber(void){
     struct num *start=NULL, *bit, *nbit;
     char a;
@@ -80,4 +91,29 @@ struct num *generateNumber(void){
     }
     potentialize(start);
     return(start);
+}
+
+int sum(struct num *a, struct num *b){
+    //generate struct result
+    int sizeOfA = 0, sizeOfB;
+    sizeOfA = countBytes(a);
+    sizeOfB = countBytes(b);
+    if(sizeOfA > sizeOfB){
+        while(sizeOfA == sizeOfB){
+            a = a->next;
+            sizeOfA--;
+        }
+        for(int i=1; i<sizeOfA; i++){
+            
+        }
+    } else if (sizeOfA < sizeOfB){
+        for(int i=1; i<sizeOfB; i++){
+            
+        }
+    } else {
+        //equals
+        for(int i=1; i<sizeOfA; i++){
+            
+        }
+    }
 }
