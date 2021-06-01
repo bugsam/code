@@ -121,7 +121,7 @@ struct num *sum(struct num *a, struct num *b){
         }
     } else {
         for(int i=0; i<sizeOfA; i++){
-            res->digit += (a->digit + b->digit);
+			res->digit += (a->digit + b->digit);
 			a = a->next;
 			b = b->next;
         }
