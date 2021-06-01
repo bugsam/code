@@ -15,15 +15,16 @@ struct num *join (struct num *, struct num *);
 struct num *createNumber(char);
 struct num *generateNumber(void);
 void potentialize(struct num *);
-int sum(struct num *, struct num *);
+struct num *sum(struct num *a, struct num *b);
 
 int main(void){
     struct num *a, *b;
-    int result = 0;
+    struct num *result;
     
     a = generateNumber();
     b = generateNumber();
     result = sum(a,b);
+    printf("%d",result->digit);
     
     return 0;
 }
@@ -67,8 +68,6 @@ struct num *createNumber(char c){
     return(bit);
 }
 
-
-
 struct num *generateNumber(void){
     struct num *start=NULL, *bit, *nbit;
     char a;
@@ -89,27 +88,44 @@ struct num *generateNumber(void){
     return(start);
 }
 
-int sum(struct num *a, struct num *b){
-    //generate struct result
+struct num *sum(struct num *a, struct num *b){
+    //! showMemory(res)
     int sizeOfA = 0, sizeOfB;
+	struct num *res;
+	
+	res = (struct num *) malloc(sizeof(struct num));
+	
     sizeOfA = countBytes(a);
     sizeOfB = countBytes(b);
+	
     if(sizeOfA > sizeOfB){
-        while(sizeOfA == sizeOfB){
-            a = a->next;
+        while(sizeOfA != sizeOfB){
+            res->digit += a->digit;
+			a = a->next;
             sizeOfA--;
         }
-        for(int i=1; i<sizeOfA; i++){
-            
+        for(int i=0; i<sizeOfA; i++){
+			res->digit += (a->digit + b->digit);
+			a = a->next;
+			b = b->next;
         }
     } else if (sizeOfA < sizeOfB){
-        for(int i=1; i<sizeOfB; i++){
-            
+		while(sizeOfA != sizeOfB){
+			res->digit += b->digit;
+			b = b-> next;
+			sizeOfB--;
+		}
+        for(int i=0; i<sizeOfB; i++){				
+			res->digit += (a->digit + b->digit);
+			a = a->next;
+			b = b->next;
         }
     } else {
-        //equals
-        for(int i=1; i<sizeOfA; i++){
-            
+        for(int i=0; i<sizeOfA; i++){
+            res->digit += (a->digit + b->digit);
+			a = a->next;
+			b = b->next;
         }
     }
+	return(res);
 }
