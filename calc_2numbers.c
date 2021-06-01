@@ -89,7 +89,6 @@ struct num *generateNumber(void){
 }
 
 struct num *sum(struct num *a, struct num *b){
-    //! showMemory(res)
     int sizeOfA = 0, sizeOfB;
 	struct num *res;
 	
