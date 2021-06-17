@@ -13,18 +13,22 @@ struct num{
 
 struct num *join (struct num *, struct num *);
 struct num *createNumber(char);
+struct num *icreateNumber(int);
 struct num *generateNumber(void);
 void potentialize(struct num *);
-struct num *sum(struct num *a, struct num *b);
+struct num *sum(struct num *, struct num *);
+struct num *getElement(struct num *ptr, int);
+struct num *reverseStruct(struct num *);
+struct num* calc(struct num *, struct num *, struct num *, struct num *, struct num *, int , int);
+void printDigit(struct num *);
 
 int main(void){
-    struct num *a, *b;
-    struct num *result;
+    struct num *a, *b, *result;
     
     a = generateNumber();
     b = generateNumber();
     result = sum(a,b);
-    printf("%d",result->digit);
+	printDigit(result);
     
     return 0;
 }
@@ -68,6 +72,14 @@ struct num *createNumber(char c){
     return(bit);
 }
 
+struct num *icreateNumber(int c){
+    struct num *bit;
+    bit = (struct num *) malloc(sizeof(struct num));
+    bit->digit = c;
+
+    return(bit);
+}
+
 struct num *generateNumber(void){
     struct num *start=NULL, *bit, *nbit;
     char a;
@@ -88,43 +100,81 @@ struct num *generateNumber(void){
     return(start);
 }
 
+struct num *getElement(struct num *ptr, int c){
+	int n=0;
+	while(n < c){
+	    ptr = ptr->next;
+		n++;
+	}
+	return(ptr);
+}
+
+struct num* calc(struct num *start, struct num *major, struct num *lower, struct num *nbit, struct num *bit, int sizeMajor, int sizeLower){
+	 //! showMemory(a)
+	while(sizeMajor != sizeLower){
+		if(start == NULL){
+			bit = icreateNumber(major->digit);
+			start = nbit = bit;
+		} else {
+			bit = icreateNumber(major->digit);
+			nbit = join(nbit, bit);
+		}
+			major = major->next;
+			sizeMajor--;
+        }
+        for(int i=0; i<sizeMajor; i++){
+			bit = icreateNumber(major->digit + lower->digit);
+			nbit = join(nbit, bit);
+			major = major->next;
+			lower = lower->next;
+        }
+	return start;
+}
+
 struct num *sum(struct num *a, struct num *b){
-    int sizeOfA = 0, sizeOfB;
-	struct num *res;
-	
-	res = (struct num *) malloc(sizeof(struct num));
-	
+    //! showMemory(a)
+    int sizeOfA = 0, sizeOfB = 0, sizeMajor=0, sizeLower=0;
+	struct num *start=NULL, *bit=NULL, *nbit=NULL, *major=NULL, *lower=NULL;
+		
     sizeOfA = countBytes(a);
     sizeOfB = countBytes(b);
 	
     if(sizeOfA > sizeOfB){
-        while(sizeOfA != sizeOfB){
-            res->digit += a->digit;
-			a = a->next;
-            sizeOfA--;
-        }
-        for(int i=0; i<sizeOfA; i++){
-			res->digit += (a->digit + b->digit);
-			a = a->next;
-			b = b->next;
-        }
-    } else if (sizeOfA < sizeOfB){
-		while(sizeOfA != sizeOfB){
-			res->digit += b->digit;
-			b = b-> next;
-			sizeOfB--;
-		}
-        for(int i=0; i<sizeOfB; i++){				
-			res->digit += (a->digit + b->digit);
-			a = a->next;
-			b = b->next;
-        }
+		major = a;
+		lower = b;
+		sizeMajor = sizeOfA;
+		sizeLower = sizeOfB;
+        start = calc(start, major, lower, nbit, bit, sizeMajor, sizeLower);
+	} else if (sizeOfA < sizeOfB){
+		major = b;
+		lower = a;
+		sizeMajor = sizeOfB;
+		sizeLower = sizeOfA;
+        start = calc(start, major, lower, nbit, bit, sizeMajor, sizeLower);
     } else {
-        for(int i=0; i<sizeOfA; i++){
-			res->digit += (a->digit + b->digit);
-			a = a->next;
-			b = b->next;
-        }
-    }
-	return(res);
+		for(int i=0; i<sizeOfA; i++){
+			if(start == NULL){
+				bit = icreateNumber(a->digit + b->digit);
+				start = nbit = bit;
+				a = a->next;
+				b = b->next;
+			} else {
+				bit = icreateNumber(a->digit + b->digit);
+				nbit = join(nbit, bit);
+				a = a->next;
+				b = b->next;
+			}
+		}
+	}
+	return(start);
+}
+
+void printDigit(struct num *ptr){
+	int num = 0;
+	
+	while(ptr != NULL){
+		num += ptr->digit;
+		ptr = ptr->next;
+	}
+	printf("%d\n",num);
 }
