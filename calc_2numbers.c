@@ -110,7 +110,6 @@ struct num *getElement(struct num *ptr, int c){
 }
 
 struct num* calc(struct num *start, struct num *major, struct num *lower, struct num *nbit, struct num *bit, int sizeMajor, int sizeLower){
-	 //! showMemory(a)
 	while(sizeMajor != sizeLower){
 		if(start == NULL){
 			bit = icreateNumber(major->digit);
@@ -132,7 +131,6 @@ struct num* calc(struct num *start, struct num *major, struct num *lower, struct
 }
 
 struct num *sum(struct num *a, struct num *b){
-    //! showMemory(a)
     int sizeOfA = 0, sizeOfB = 0, sizeMajor=0, sizeLower=0;
 	struct num *start=NULL, *bit=NULL, *nbit=NULL, *major=NULL, *lower=NULL;
 		
