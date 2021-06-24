@@ -21,7 +21,7 @@ read_stdin:
         push ebp
         mov ebp, esp
 
-        mov edx, [ebp+0xc]      ; count: buffer_zie
+        mov edx, [ebp+0xc]      ; count: buffer_size
         mov ecx, [ebp+8]        ; *buf: pointer to buffer
         mov ebx, 0x0    ; fd: stdin
         mov eax, 0x3    ; sys_read
@@ -36,7 +36,7 @@ write_stdout:
         mov ebp, esp
 
 
-        mov edx, [ebp+0xc]      ; count: buffer_zie
+        mov edx, [ebp+0xc]      ; count: buffer_size
         mov ecx, [ebp+0x8]      ; *buf: pointer to buffer
         mov ebx, 0x1    ; fd: stdout
         mov eax, 0x4    ; sys_write
@@ -49,8 +49,45 @@ write_stdout:
 atoi:
         push ebp
         mov ebp, esp
+        sub esp, 0x14
 
-        mov byte [ecx+eax-1], 0x00      ; clear LF character
+        xchg ecx, eax                   ; ecx: sizeof(num)
+        xchg ebx, eax                   ; ebx: *num
+
+        mov byte [ebx+ecx-1], 0x00      ; clear LF character
+        dec ecx                         ; remove LF from size
+        push ecx                        ; save sizeof(num) onto stack
+
+        ..@latoi1:
+                sub byte [ebx], 0x30    ; byte operation: char to int
+                inc ebx                 ; increase pointer to next byte
+                loop ..@latoi1
+
+        pop ecx                         ; retrieves sizeof(num) from stack
+        dec ebx                         ; change pointer to last byte
+
+        push eax
+        mov eax, 0x1
+        push ecx
+        xor edx, edx
+
+        ..@latoi2:
+                push eax
+
+                xor ecx, ecx
+                add cl, byte[ebx]       ; works in next byte
+                mul ecx                 ; eax: results
+
+                add edx, eax            ; edx: temporary accumulator
+
+                pop eax                 ; restore base multiplier
+
+                mul 0xa                 ; increase base multiplier
+                pop ecx                 ; restore loop counter
+        loop ..@latoi2
+
+                pop eax
+
 
 
         leave
@@ -88,7 +125,7 @@ _start:
         push askoneL
         push askone
         call write_stdout
-        push 0x80
+        push 0x0a
         push num1
         call read_stdin         ; read first number
 
@@ -100,7 +137,7 @@ _start:
         push asktwoL
         push asktwo
         call write_stdout
-        push 0x80
+        push 0x0a
         push num2
         call read_stdin ; read second number
 
@@ -111,7 +148,7 @@ _start:
         call itoa       ; result number
 
         ;;TODO size of buffer
-        push 0x80
+        push 0x0a
         push edx
         call write_stdout
 
