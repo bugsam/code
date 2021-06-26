@@ -1,8 +1,8 @@
-section .data
+section .data                                                          
         welcome db "Let's GoHacking!",0x0a,"Calculate the sum of two values: ",0xa
-        welcomeL equ $-welcome
-
-        askone db "Please enter the first number: ",0x0
+        welcomeL equ $-welcome                                                      
+                                                                                    
+        askone db "Please enter the first number: ",0x0                                      
         askoneL equ $-askone
 
         asktwo db "Please enter the seconde number: ",0x0
@@ -52,42 +52,40 @@ atoi:
         sub esp, 0x14
 
         xchg ecx, eax                   ; ecx: sizeof(num)
-        xchg ebx, eax                   ; ebx: *num
+        xchg esi, eax                   ; esi: *num
 
-        mov byte [ebx+ecx-1], 0x00      ; clear LF character
+        mov byte [esi+ecx-1], 0x00      ; clear LF character
         dec ecx                         ; remove LF from size
         push ecx                        ; save sizeof(num) onto stack
 
         ..@latoi1:
-                sub byte [ebx], 0x30    ; byte operation: char to int
-                inc ebx                 ; increase pointer to next byte
+                sub byte [esi], 0x30    ; byte operation: char to int
+                inc esi                 ; increase pointer to next byte
                 loop ..@latoi1
 
         pop ecx                         ; retrieves sizeof(num) from stack
-        dec ebx                         ; change pointer to last byte
+        dec esi                         ; change pointer to last byte
 
-        push eax
-        mov eax, 0x1
-        push ecx
-        xor edx, edx
+        mov eax, 0x1                    ; set multiplier for the first place value
+        xor ebx, ebx
 
         ..@latoi2:
+                push ecx
                 push eax
 
                 xor ecx, ecx
-                add cl, byte[ebx]       ; works in next byte
+                add cl, byte[esi]       ; works in next byte
                 mul ecx                 ; eax: results
+                dec esi                 ; next byte
 
-                add edx, eax            ; edx: temporary accumulator
+                add ebx, eax            ; edx: temporary accumulator
 
                 pop eax                 ; restore base multiplier
+                mov ecx, 0xa
+                mul ecx                 ; increase base multiplier
 
-                mul 0xa                 ; increase base multiplier
                 pop ecx                 ; restore loop counter
         loop ..@latoi2
-
-                pop eax
-
 
 
         leave
