@@ -1,8 +1,11 @@
-section .data                                                          
+; Author: @bugsam
+; Date: 06/27/2021
+
+section .data
         welcome db "Let's GoHacking!",0x0a,"Calculate the sum of two values: ",0xa
-        welcomeL equ $-welcome                                                      
-                                                                                    
-        askone db "Please enter the first number: ",0x0                                      
+        welcomeL equ $-welcome
+
+        askone db "Please enter the first number: ",0x0
         askoneL equ $-askone
 
         asktwo db "Please enter the seconde number: ",0x0
@@ -12,6 +15,8 @@ section .data
 section .bss
         num1 resq 4     ; allocate 32 bytes in memory
         num2 resq 4
+        result resq 4
+        result_ascii resq 4
 
 section .text
         global _start
@@ -86,7 +91,7 @@ atoi:
 
                 pop ecx                 ; restore loop counter
         loop ..@latoi2
-
+                xchg eax, ebx           ; eax: returns results
 
         leave
         ret
@@ -95,8 +100,28 @@ atoi:
 itoa:
         push ebp
         mov ebp, esp
+        sub esp, 0x14
+        mov edi, [ebp+0x8]              ; edi: points to reserved memory for string
+        mov ebx, 0xa                    ; base(16)
+        xor ecx, ecx
 
-        ;TODO add LF
+        ..@litoa1:
+                xor edx, edx
+                div ebx                         ; edx: remainder (modulo operation)
+                add edx, 0x30                   ; convert to char ASCII
+                push edx                        ; save result onto stack
+                inc ecx                         ; sizeof(result)
+                cmp eax, 0x00                   ; end of operation
+                jnz ..@litoa1
+
+        mov eax, ecx
+        ..@litoa2:
+                pop edx
+                mov byte [edi],dl               ; save into reserved memory for string
+                inc edi                         ; next byte
+                loop ..@litoa2
+        mov byte [edi], 0x0a                    ; add LF character
+        inc eax                                 ; add LF to the count
 
         leave
         ret
@@ -105,6 +130,12 @@ itoa:
 calc_int:
         push ebp
         mov ebp, esp
+        sub esp, 0x14
+
+        mov ebx, [ebp+0x8]
+        mov ecx, [ebx]
+        add eax, ecx
+        mov [ebx], eax
 
         leave
         ret
@@ -126,28 +157,25 @@ _start:
         push 0x0a
         push num1
         call read_stdin         ; read first number
-
-        ;ECX -> buffer
-        ;EAX -> size
-        call atoi       ; first number
-
+        call atoi
+        push result
+        call calc_int
 
         push asktwoL
         push asktwo
         call write_stdout
         push 0x0a
         push num2
-        call read_stdin ; read second number
-
-        push num2
-        call atoi       ; second number
-
+        call read_stdin         ; read second number
+        call atoi               ; second number
+        push result
         call calc_int
-        call itoa       ; result number
 
-        ;;TODO size of buffer
-        push 0x0a
-        push edx
+        push result_ascii
+        call itoa               ; result number
+
+        push eax                ; sizeof(result_ascii)
+        push result_ascii
         call write_stdout
 
         popad
