@@ -13,10 +13,10 @@ section .data
 
 
 section .bss
-        num1 resq 4     ; allocate 32 bytes in memory
-        num2 resq 4
-        result resq 4
-        result_ascii resq 4
+        num1 resb 0xa   ; allocate bytes in memory
+        num2 resb 0xa
+        result resb 0x4
+        result_ascii resb 0xa 
 
 section .text
         global _start
@@ -132,10 +132,10 @@ calc_int:
         mov ebp, esp
         sub esp, 0x14
 
-        mov ebx, [ebp+0x8]
-        mov ecx, [ebx]
-        add eax, ecx
-        mov [ebx], eax
+        mov ebx, [ebp+0x8]                      ; ebx: points to reserved memory (result)
+        mov ecx, [ebx]                          ; ecx: store (result)
+        add eax, ecx                            ; eax: temporary accumulator
+        mov [ebx], eax                          ; ebx: save result in reserved memory result
 
         leave
         ret
@@ -154,7 +154,7 @@ _start:
         push askoneL
         push askone
         call write_stdout
-        push 0x0a
+        push 0xa                ; read max 9 bytes + LF
         push num1
         call read_stdin         ; read first number
         call atoi
@@ -164,7 +164,7 @@ _start:
         push asktwoL
         push asktwo
         call write_stdout
-        push 0x0a
+        push 0xa                ; read max 9 bytes + LF
         push num2
         call read_stdin         ; read second number
         call atoi               ; second number
