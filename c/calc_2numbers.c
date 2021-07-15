@@ -43,10 +43,8 @@ int countBytes(struct num *n){
 }
 
 void potentialize(struct num *n){
-    struct num *ptr = n;
     int count = 0;
     count = countBytes(n);
-    n = ptr;
     while(n != NULL){
         for(int i=1; i<count; i++){
             n->digit *= 10;
