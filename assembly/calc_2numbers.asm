@@ -8,7 +8,7 @@ section .data
         askone db "Please enter the first number: ",0x0
         askoneL equ $-askone
 
-        asktwo db "Please enter the seconde number: ",0x0
+        asktwo db "Please enter the second number: ",0x0
         asktwoL equ $-asktwo
 
 
