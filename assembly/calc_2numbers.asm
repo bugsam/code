@@ -54,7 +54,7 @@ write_stdout:
 atoi:
         push ebp
         mov ebp, esp
-        sub esp, 0x14
+        sub esp, 0x04
 
         xchg ecx, eax                   ; ecx: sizeof(num)
         xchg esi, eax                   ; esi: *num
@@ -100,7 +100,7 @@ atoi:
 itoa:
         push ebp
         mov ebp, esp
-        sub esp, 0x14
+        sub esp, 0x04
         mov edi, [ebp+0x8]              ; edi: points to reserved memory for string
         mov ebx, 0xa                    ; base(16)
         xor ecx, ecx
@@ -130,7 +130,7 @@ itoa:
 calc_int:
         push ebp
         mov ebp, esp
-        sub esp, 0x14
+        sub esp, 0x04
 
         mov ebx, [ebp+0x8]                      ; ebx: points to reserved memory (result)
         mov ecx, [ebx]                          ; ecx: store (result)
