@@ -23,6 +23,7 @@ if [[ $LINE -eq 2 ]]
 then
     
     let "BEG=(ROWS/4)+10"
+    let "YAH=(ROWS/2)"
     let "MED=(ROWS/4)"
     let "INT=(ROWS/4)"
     let "END=BEG+1"
@@ -77,34 +78,34 @@ then
         printf "\n"
         let "END++"
     done
+    
+    #base
+    for (( x=0; x<=ROWS/8; x++))
+    do
+        for (( i=0; i<BEG; i++ ))
+        do
+            printf "_"
+        done
+        printf "1"
+        
+        for (( i=0; i<YAH; i++ ))
+        do
+            printf "_"
+        done
+        printf "1"
+    
+        for (( i=0; i<END; i++ ))
+        do
+            printf "_"
+        done
+        printf "\n"
+    done
 fi
 
 
 let "BEG=(ROWS/2)+2"
 let "MED=(ROWS/2)"
 let "END=BEG+1"
-
-#base
-for (( x=0; x<=ROWS/8; x++))
-do
-    for (( i=0; i<BEG; i++ ))
-    do
-        printf "_"
-    done
-    printf "1"
-    
-    for (( i=0; i<MED; i++ ))
-    do
-        printf "_"
-    done
-    printf "1"
-
-    for (( i=0; i<END; i++ ))
-    do
-        printf "_"
-    done
-    printf "\n"
-done
 
 #first
 for (( x=0; x<=ROWS/4; x++))
