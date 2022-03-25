@@ -1,4 +1,5 @@
 # bugsam 03/25/2022
+# jku claim misuse
 
 import json
 from authlib.jose import JsonWebKey
