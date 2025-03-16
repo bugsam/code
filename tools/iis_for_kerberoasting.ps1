@@ -1,3 +1,5 @@
+Install-WindowsFeature Web-Server, Web-Windows-Auth, Web-Asp-Net, Web-Asp-Net45 -Confirm -IncludeManagementTools
+
 Import-Module WebAdministration
 
 $APP_POOL_NAME = "vuln_site"
@@ -82,9 +84,9 @@ foreach ($SEC_OBJ in $SECURABLE_OBJECTS){
     Get-ChildItem -Path $SEC_OBJ -Recurse -Force | Set-Acl -AclObject $NEW_ACL
 }
 
-# on your DC (set SPN)
-$IIS_SERVER = "YOUR_IIS_HOSTNAME"
-$IIS_USER = "YOUR_IIS_IDENTITY_ACCOUNT"
+# on your DC (set SPN
+$IIS_SERVER = "app01"
+$IIS_USER = "app-account"
 $IIS_SPNS = Get-ADComputer -Identity $IIS_SERVER -Properties ServicePrincipalName | 
     Select-Object -ExpandProperty ServicePrincipalName |
     Where-Object { $_ -like 'HOST/*' } |
@@ -94,4 +96,5 @@ foreach ($SPN in $IIS_SPNS){
     Write-Host "$SPN"
     Set-ADUser -Identity $IIS_USER -ServicePrincipalNames @{Add="$SPN"}
 }
+
 Get-ADUser -Identity $IIS_USER -Properties ServicePrincipalNames
